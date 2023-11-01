@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">MedicineBox</string>
+    <integer name="default_number">1</integer>
+</resources>
