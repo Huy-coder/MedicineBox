@@ -235,24 +235,20 @@ public class MedicineBoxFragment extends Fragment {
     }
 
     public void inputDataToSlot(String numberOfMedicine) {
-        Button slot_1 = view.findViewById(R.id.slot_1);
-        slot_1.setText(String.valueOf(numberOfMedicine.charAt(0)));
-        Button slot_2 = view.findViewById(R.id.slot_2);
-        slot_2.setText(String.valueOf(numberOfMedicine.charAt(1)));
-        Button slot_3 = view.findViewById(R.id.slot_3);
-        slot_3.setText(String.valueOf(numberOfMedicine.charAt(2)));
-        Button slot_4 = view.findViewById(R.id.slot_4);
-        slot_4.setText(String.valueOf(numberOfMedicine.charAt(3)));
-        Button slot_5 = view.findViewById(R.id.slot_5);
-        slot_5.setText(String.valueOf(numberOfMedicine.charAt(4)));
-        Button slot_6 = view.findViewById(R.id.slot_6);
-        slot_6.setText(String.valueOf(numberOfMedicine.charAt(5)));
-        Button slot_7 = view.findViewById(R.id.slot_7);
-        slot_7.setText(String.valueOf(numberOfMedicine.charAt(6)));
-        Button slot_8 = view.findViewById(R.id.slot_8);
-        slot_8.setText(String.valueOf(numberOfMedicine.charAt(7)));
-        Button slot_9 = view.findViewById(R.id.slot_9);
-        slot_9.setText(String.valueOf(numberOfMedicine.charAt(8)));
+        inputDataForEachButton(R.id.slot_1, numberOfMedicine, 0);
+        inputDataForEachButton(R.id.slot_2, numberOfMedicine, 1);
+        inputDataForEachButton(R.id.slot_3, numberOfMedicine, 2);
+        inputDataForEachButton(R.id.slot_4, numberOfMedicine, 3);
+        inputDataForEachButton(R.id.slot_5, numberOfMedicine, 4);
+        inputDataForEachButton(R.id.slot_6, numberOfMedicine, 5);
+        inputDataForEachButton(R.id.slot_7, numberOfMedicine, 6);
+        inputDataForEachButton(R.id.slot_8, numberOfMedicine, 7);
+        inputDataForEachButton(R.id.slot_9, numberOfMedicine, 8);
+    }
+
+    public void inputDataForEachButton(int id, String number, int position) {
+        Button slot = view.findViewById(id);
+        slot.setText(String.valueOf(number.charAt(position)));
     }
 
     ScanCallback scanCallback = new ScanCallback() {
