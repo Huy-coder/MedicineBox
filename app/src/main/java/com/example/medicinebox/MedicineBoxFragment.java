@@ -1,5 +1,7 @@
 package com.example.medicinebox;
 
+import static android.Manifest.permission.BLUETOOTH_CONNECT;
+
 import android.Manifest;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -15,6 +17,7 @@ import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Build;
@@ -50,6 +53,14 @@ public class MedicineBoxFragment extends Fragment {
     private static final String IN_CHECKING_MEDICINE_SLOT = "2";
     private static final String CHANNEL_NAME = "MedicineBoxChannel";
     private static final String CHANNEL_DESCRIPTION = "This is my notification channel";
+    private static final String[] PERMISSIONS_BLUETOOTH = {
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_LOCATION_EXTRA_COMMANDS,
+            Manifest.permission.BLUETOOTH_SCAN,
+            Manifest.permission.BLUETOOTH_CONNECT,
+            Manifest.permission.BLUETOOTH_PRIVILEGED
+    };
     BluetoothGattCharacteristic characteristicForNotify;
     BluetoothGattCharacteristic characteristicForWrite;
     BluetoothGatt bluetoothGatt;
@@ -61,7 +72,7 @@ public class MedicineBoxFragment extends Fragment {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 Log.d(TAG, "onConnectionStateChange: Connected");
                 // Device is connected, you can now discover services.
-                if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.checkSelfPermission(requireContext(), BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
                     Log.e(TAG, "onConnectionStateChange: don't have permission to connect");
                     return;
                 }
@@ -119,19 +130,31 @@ public class MedicineBoxFragment extends Fragment {
             // Process the data as needed
         }
     };
+    private BluetoothAdapter bluetoothAdapter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "onCreate: ");
         super.onCreate(savedInstanceState);
-        bluetoothLeScanner = BluetoothAdapter.getDefaultAdapter().getBluetoothLeScanner();
-
-        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
-            Log.e(TAG, "onCreate: Don't have permission to scan");
-            requestPermissions(new String[]{Manifest.permission.BLUETOOTH_SCAN}, REQUEST_BLUETOOTH_SCAN_PERMISSION);
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (bluetoothAdapter == null) {
+            Log.e(TAG, "onCreate: device does not support Bluetooth");
+            return;
         }
-        bluetoothLeScanner.startScan(scanCallback);
 
+        if (!bluetoothAdapter.isEnabled()) {
+            // Bluetooth is not enabled, request user to enable it
+            checkPermissions();
+            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableBtIntent, 1); // The request code could be any positive integer
+        } else {
+            bluetoothLeScanner = BluetoothAdapter.getDefaultAdapter().getBluetoothLeScanner();
+            if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+                Log.e(TAG, "onCreate: Don't have permission to scan");
+                requestPermissions(new String[]{Manifest.permission.BLUETOOTH_SCAN}, REQUEST_BLUETOOTH_SCAN_PERMISSION);
+            }
+            bluetoothLeScanner.startScan(scanCallback);
+        }
     }
 
     @Override
@@ -251,13 +274,25 @@ public class MedicineBoxFragment extends Fragment {
         slot.setText(String.valueOf(number.charAt(position)));
     }
 
+    private void checkPermissions() {
+        int permission1 = ActivityCompat.checkSelfPermission(requireContext(), BLUETOOTH_CONNECT);
+        if (permission1 != PackageManager.PERMISSION_GRANTED) {
+            // We don't have permission so prompt the user
+            ActivityCompat.requestPermissions(
+                    getActivity(),
+                    PERMISSIONS_BLUETOOTH,
+                    1
+            );
+        }
+    }
+
     ScanCallback scanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
             // Handle scan results here.
             BluetoothDevice device = result.getDevice();
             Log.d(TAG, "onScanResult: " + result.getDevice().getName());
-            if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.checkSelfPermission(requireContext(), BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
                 Log.e(TAG, "onScanResult: don't have permission to connect");
                 return;
             }
@@ -279,4 +314,6 @@ public class MedicineBoxFragment extends Fragment {
             // Handle scan failure
         }
     };
+
+
 }
